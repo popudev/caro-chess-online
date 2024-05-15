@@ -9,6 +9,9 @@ import time
 class Game:
     def __init__(self, cell_size, number_cell_width, number_cell_height):
         pygame.init()
+        
+        self.font = pygame.font.SysFont("Arial", 14, bold=True)
+        self.nav_player_font = pygame.font.SysFont("Arial", 16, bold=True)
 
         self.CELL_SIZE = cell_size
         # Lấy độ cao là 2 ô cho nav bar
@@ -58,6 +61,12 @@ class Game:
             self.o_img,
             (self.CELL_SIZE - 2 * self.padding, self.CELL_SIZE - 2 * self.padding),
         )
+        
+        # nav options
+        self.nav_options = ["Player turn", "Reset", "Exit"]
+        self.noti_options = ["Winner", "Play again", "Exit"]
+        self.nav_rects = []  # To store button rectangles
+        self.noti_rects = []
 
     def draw_screen(self):
         self.draw_nav()
@@ -68,7 +77,18 @@ class Game:
 
     def draw_nav(self):
         self.nav_surface.fill(Color.WHITE)
-
+        nav_option_width = 100
+        nav_option_height = 30
+                
+        self.nav_rects = []
+        for i, option in enumerate(self.nav_options):
+            xButton = self.NAV_WIDTH // 2 + i * 130 - 360 // 2
+            yButton = self.NAV_HEIGHT // 2 - nav_option_height // 2
+            if(option == "Player turn"): 
+                text_surf, text_rect = self.draw_text(f'Player {self.current_player}\'s turn', Color.BLACK, xButton + nav_option_width // 2, yButton + nav_option_height // 2, self.nav_player_font)
+                self.nav_surface.blit(text_surf, text_rect)
+            else: self.nav_rects.append(self.draw_button( "nav", option, xButton, yButton, nav_option_width, nav_option_height))
+        
         self.screen.blit(self.nav_surface, (0, 0))
 
     def draw_game(self):
@@ -118,10 +138,63 @@ class Game:
         x_pos = col * self.CELL_SIZE + self.padding
         y_pos = row * self.CELL_SIZE + self.padding
         self.game_surface.blit(self.o_img, (x_pos, y_pos))
+        
+    def draw_text(self, text, color, x, y, font = None):
+        if(font):
+            textobj = font.render(text, True, color)
+        else: textobj = self.font.render(text, True, color)
+        textrect = textobj.get_rect(center=(x, y))
+        return textobj, textrect
+
+    def draw_button(self, surface_type, text, x, y, width, height):
+        mx, my = pygame.mouse.get_pos()
+        button_rect = pygame.Rect(x, y, width, height)
+        is_hover = button_rect.collidepoint(mx, my)
+        # Button colors
+        button_color = Color.GRAY if is_hover else Color.WHITE
+        text_color = Color.RED if is_hover else Color.BLUE
+        
+        surface = self.game_surface
+        if(surface_type == "nav"):
+            surface = self.nav_surface
+            if(self.winner != 0):
+                button_color = Color.WHITE
+                text_color = Color.BLUE
+        elif(surface_type == "screen"):
+            surface = self.screen
+            
+        # Draw button rectangle
+        pygame.draw.rect(surface, button_color, button_rect)
+        pygame.draw.rect(surface, Color.BLACK, button_rect, 2)  # Border
+
+        # Draw text on button
+        text_surf, text_rect = self.draw_text(text, text_color, x + width // 2, y + height // 2)
+        surface.blit(text_surf, text_rect)
+
+        return button_rect
 
     def draw_end_game(self):
-        # self.endgame_screen.draw(self.winner)
-        pass
+        notification_width = 220
+        notification_height = 180
+        notification_x = self.GAME_WIDTH // 2 - notification_width // 2
+        notification_y =  self.GAME_HEIGHT // 2 - notification_height // 2 + self.NAV_HEIGHT
+
+        # Vẽ hình chữ nhật thông báo
+        pygame.draw.rect(self.screen, Color.WHITE, [notification_x, notification_y, notification_width, notification_height])
+        pygame.draw.rect(self.screen, Color.BLUE, [notification_x, notification_y, notification_width, notification_height], 2)
+             
+        noti_option_width = 100
+        noti_option_height = 30
+    
+        self.noti_rects = []
+        for i, option in enumerate(self.noti_options):
+            xButton = notification_x + (notification_width - noti_option_width) // 2
+            yButton = notification_y + (notification_height - noti_option_height) // 2 + i*50 - 110 // 2
+            if(option == "Winner"): 
+                text_surf, text_rect = self.draw_text(f'{option}: Player {self.current_player}', Color.BLACK, xButton + noti_option_width // 2, yButton + noti_option_height // 2, self.nav_player_font)
+                self.screen.blit(text_surf, text_rect)
+            else: self.noti_rects.append(self.draw_button("screen", option, xButton, yButton, noti_option_width, noti_option_height))
+        return None;
 
     def get_hover_cell(self):
         mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -196,11 +269,32 @@ class Game:
             sys.exit()
 
         else:
-
             if event.type == pygame.MOUSEBUTTONUP:
                 # Kiểm tra xem nút nào được nhấn
                 if event.button == 1:  # 1 là nút chuột trái
                     self.handle_click()
+                for i, rect in enumerate(self.nav_rects):
+                    if(self.winner == 0):
+                        if rect.collidepoint(event.pos):
+                            if i == 0:
+                                print("Options clicked")
+                                self.board = np.zeros((self.NUMBER_CELL_GAME_HEIGHT, self.NUMBER_CELL_GAME_WIDTH))
+                                self.current_player = 1  # X starts first
+                                self.winner = 0
+                                self.running = True
+                            elif i == 1:
+                                self.running = False
+                for i, rect in enumerate(self.noti_rects):
+                    if(self.winner != 0):
+                        if (rect.collidepoint(event.pos)):
+                            if i == 0:
+                                print("Options clicked")
+                                self.board = np.zeros((self.NUMBER_CELL_GAME_HEIGHT, self.NUMBER_CELL_GAME_WIDTH))
+                                self.current_player = 1  # X starts first
+                                self.winner = 0
+                                self.running = True
+                            elif i == 1:
+                                self.running = False
 
     def run(self):
         # Clear all events before switching screens
@@ -208,10 +302,10 @@ class Game:
 
         while self.running:
 
+            self.draw_screen()
             for event in pygame.event.get():
                 self.handel_event(event)
 
-            self.draw_screen()
 
             pygame.display.update()
 
