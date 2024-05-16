@@ -21,8 +21,8 @@ cd yourproject
 - Trên Windows:
 
 ```sh
-python -m venv venv
-.\venv\Scripts\activate.bat
+python -m venv .venv
+.\.venv\Scripts\activate
 ```
 
 - Trên macOS/Linux:
