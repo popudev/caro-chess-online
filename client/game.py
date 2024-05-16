@@ -67,6 +67,14 @@ class Game:
         # Các nút thông báo
         self.noti_options = ["Winner", "Play again", "Exit"]
         self.noti_rects = []  # Lưu trữ nút để xử lý sự kiện click
+        
+        self.button_sound = pygame.mixer.Sound('res/mp3/click.mp3')
+        self.move_sound = pygame.mixer.Sound('res/mp3/pop.mp3')
+        self.victory_sound = pygame.mixer.Sound('res/mp3/victory.mp3')
+        self.gameover_sound = pygame.mixer.Sound('res/mp3/gameover.mp3')
+        
+    def play_sounds(self, sound): 
+        sound.play()
 
     def draw_screen(self):
         self.screen.fill(Color.WHITE)
@@ -322,11 +330,13 @@ class Game:
                 for i, nav_item in enumerate(self.nav_rects):
                     if self.winner == 0:
                         if nav_item["rect"].collidepoint(event.pos):
+                            self.play_sounds(self.button_sound)
                             if nav_item["option"] == "Start":
                                 self.isStart = True
-
+                                
                             elif nav_item["option"] == "Exit":
                                 self.running = False
+                                pygame.mixer.music.play(loops=-1)
 
                             elif nav_item["option"] == "Reset" and self.isStart:
                                 self.reset()
@@ -334,10 +344,12 @@ class Game:
                 for i, rect in enumerate(self.noti_rects):
                     if self.winner != 0:
                         if rect.collidepoint(event.pos):
+                            self.play_sounds(self.button_sound)
                             if i == 0:
                                 self.reset()
                             elif i == 1:
                                 self.running = False
+                                pygame.mixer.music.play(loops=-1)
 
     def reset(self):
         # Các lớp kế thừa sẽ xử lý

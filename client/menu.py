@@ -41,6 +41,13 @@ class Menu:
         # Menu options
         self.menu_options = ["Start Online", "Start 2 Player", "Exit"]
         self.menu_rects = []  # To store button rectangles
+        
+        self.button_sound = pygame.mixer.Sound('res/mp3/click.mp3')
+        pygame.mixer.music.load('res/mp3/fight.mp3')
+        pygame.mixer.music.play(loops=-1)
+        
+    def play_sounds(self, sound): 
+        sound.play()
 
     def draw_text(self, text, color, x, y):
         textobj = self.font.render(text, True, color)
@@ -92,6 +99,8 @@ class Menu:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     for i, rect in enumerate(self.menu_rects):
                         if rect.collidepoint(event.pos):
+                            pygame.mixer.music.stop()
+                            self.play_sounds(self.button_sound)
                             if i == 0:
                                 print("Start Game clicked")
                                 self.start_game_online()

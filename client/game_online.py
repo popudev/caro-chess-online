@@ -179,6 +179,8 @@ class GameOnline(Game):
         if hover_pos == None:
             return
         col, row = hover_pos
+        
+        self.play_sounds(self.move_sound)
         # Chỉ được đánh vào những ô trống và đến lượt của mình
         if self.board[row][col] == 0 and self.isMove == True:
             self.sio.emit("move", {"game_id": self.game_id, "row": row, "col": col})
@@ -228,6 +230,7 @@ class GameOnline(Game):
         self.board[prev_row][prev_col] = 0  # Reset the cell to empty
 
     def handle_game_over_event(self, data):
+        self.play_sounds(self.victory_sound)
         self.winning_line = data["winner"]["winning_line"]
         self.winner = data["winner"]["piece"]
         print("Người chơi thắng: ", self.winner)
