@@ -1,4 +1,5 @@
 from game import Game
+import numpy
 
 
 class GameOffline(Game):
@@ -68,5 +69,12 @@ class GameOffline(Game):
         return 0  # Return 0 if there is no winner
 
     def reset(self):
-        super().reset()
+        self.board = numpy.zeros(
+            (
+                self.NUMBER_CELL_GAME_HEIGHT,
+                self.NUMBER_CELL_GAME_WIDTH,
+            )
+        )
+        self.winner = 0
+        self.winning_line = None
         self.player_current_id = 1

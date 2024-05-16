@@ -29,16 +29,21 @@ class GameOnline(Game):
         self.isJoined = False
         self.isStart = False
         self.isMove = False
+        self.isOpponentLeft = False
 
     def draw_screen(self):
         self.screen.fill(Color.WHITE)
-
+        self.nav_rects = []
         if self.isError:
             self.draw_connecting_server(isError=True)
             return
 
         if self.isJoined == False:  # Nếu chưa join game
             self.draw_waiting_join_game()
+            return
+
+        if self.isOpponentLeft:
+            self.draw_opponent_left()
             return
 
         self.draw_nav()
@@ -125,9 +130,46 @@ class GameOnline(Game):
         )
         self.screen.blit(text, textrect)
 
+    def draw_opponent_left(self):
+        self.screen.fill(Color.WHITE)
+        font = pygame.font.Font(None, 36)
+        textStr = "Your opponent has left the game!"
+        text = font.render(textStr, True, Color.BLACK)
+        x = self.SCREEN_WIDTH // 2
+        y = self.SCREEN_HEIGHT // 2 - 50
+        textrect = text.get_rect(center=(x, y))
+
+        self.screen.blit(text, textrect)
+
+        mx, my = pygame.mouse.get_pos()
+        xButton = x - 100
+        yButton = textrect.y + 50
+        self.btn_go_back_error = pygame.Rect(xButton, yButton, 200, 50)
+        is_hover = self.btn_go_back_error.collidepoint(mx, my)
+        # Button colors
+        button_color = Color.HOVER_COLOR if is_hover else Color.WHITE
+        text_color = Color.RED if is_hover else Color.BLUE
+
+        # Draw button rectangle
+
+        pygame.draw.rect(self.screen, button_color, self.btn_go_back_error)
+        pygame.draw.rect(self.screen, Color.BLACK, self.btn_go_back_error, 2)  # Border
+
+        # Draw text on button
+        text_surf, text_rect = Utils.draw_text(
+            "Go back", text_color, x, textrect.y + 75
+        )
+        self.screen.blit(text_surf, text_rect)
+
     def check_hover_cell(self):
         # Các lớp kế thừa có thể xử lý sự kiện hover riêng
-        if self.winner == 0 and self.isStart and self.isJoined and self.isMove:
+        if (
+            self.winner == 0
+            and self.isStart
+            and self.isJoined
+            and self.isMove
+            and self.isOpponentLeft == False
+        ):
             return True
 
         return False
@@ -148,6 +190,7 @@ class GameOnline(Game):
         self.sio.on("starting_player", self.handle_starting_player_event)
         self.sio.on("move", self.handle_move_event)
         self.sio.on("undo_move", self.handle_undo_move_event)
+        self.sio.on("opponent_left", self.handle_opponent_left_event)
         self.sio.on("game_over", self.handle_game_over_event)
 
     def handle_connect_event(self):
@@ -188,6 +231,10 @@ class GameOnline(Game):
         self.winning_line = data["winner"]["winning_line"]
         self.winner = data["winner"]["piece"]
         print("Người chơi thắng: ", self.winner)
+
+    def handle_opponent_left_event(self):
+        self.isOpponentLeft = True
+        self.sio.disconnect()
 
     def handle_event_more(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:

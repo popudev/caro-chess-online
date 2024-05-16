@@ -71,7 +71,7 @@ class Game:
 
     def draw_screen(self):
         self.screen.fill(Color.WHITE)
-
+        self.nav_rects = []
         self.draw_nav()
         self.draw_game()
 
@@ -328,7 +328,7 @@ class Game:
                             elif nav_item["option"] == "Exit":
                                 self.running = False
 
-                            elif nav_item["option"] == "Reset":
+                            elif nav_item["option"] == "Reset" and self.isStart:
                                 self.reset()
 
                 for i, rect in enumerate(self.noti_rects):
@@ -340,15 +340,8 @@ class Game:
                                 self.running = False
 
     def reset(self):
-        # Các lớp kế thừa sẽ xử lý thêm
-        self.board = np.zeros(
-            (
-                self.NUMBER_CELL_GAME_HEIGHT,
-                self.NUMBER_CELL_GAME_WIDTH,
-            )
-        )
-        self.winner = 0
-        self.winning_line = None
+        # Các lớp kế thừa sẽ xử lý
+        pass
 
     def run_before(self):
         pass
