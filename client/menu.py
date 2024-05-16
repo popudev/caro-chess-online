@@ -4,6 +4,7 @@ from game_offline import GameOffline
 from asset import Asset
 from config import Config
 from game_online import GameOnline
+from game_ai import GameAI
 
 
 class Menu:
@@ -39,7 +40,12 @@ class Menu:
         self.font = pygame.font.SysFont("Arial", 36, bold=True)
 
         # Menu options
-        self.menu_options = ["Start Online", "Start 2 Player", "Exit"]
+        self.menu_options = [
+            "Start Online",
+            "Start 2 Player",
+            "Start Bot",
+            "Exit",
+        ]
         self.menu_rects = []  # To store button rectangles
 
     def draw_text(self, text, color, x, y):
@@ -93,12 +99,16 @@ class Menu:
                     for i, rect in enumerate(self.menu_rects):
                         if rect.collidepoint(event.pos):
                             if i == 0:
-                                print("Start Game clicked")
+
                                 self.start_game_online()
                             elif i == 1:
-                                print("Options clicked")
+
                                 self.start_game_offine()
+
                             elif i == 2:
+                                self.start_game_bot()
+
+                            elif i == 3:
                                 pygame.quit()
                                 sys.exit()
 
@@ -110,6 +120,10 @@ class Menu:
 
     def start_game_offine(self):
         game = GameOffline(screen=self.screen)
+        game.run()
+
+    def start_game_bot(self):
+        game = GameAI(screen=self.screen)
         game.run()
 
 

@@ -130,6 +130,11 @@ class Game:
 
         return 0  # Return 0 if there is no winner
 
+    def reset(self) -> None:
+        self.board = np.zeros((Config.NUMBER_CELL_HEIGHT - 2, Config.NUMBER_CELL_WIDTH))
+        self.move_history = []
+        self.piece = 1
+
 
 class CaroServer:
     def __init__(self) -> None:
@@ -191,7 +196,13 @@ class CaroServer:
 
             winner = game.check_winner(col, row)
             if winner != 0:
-                emit("game_over", {"winner": winner}, room=game_id)
+                # Giữ để người dùng bấm play again
+                game.turn_player_id = player_id
+                emit(
+                    "game_over",
+                    {"winner": winner, "player_id": player_id},
+                    room=game_id,
+                )
             else:
                 emit(
                     "starting_player",
@@ -235,6 +246,20 @@ class CaroServer:
     def generate_game_id(self) -> str:
         return "".join(random.choices(string.digits, k=6))
 
+    def on_reset_game(self, data: Dict[str, str]) -> None:
+        game_id = data["game_id"]
+        game = self.games.get(game_id)
+
+        if game:
+            game.reset()
+            emit("reset_game", {"message": "Game has been reset."}, room=game_id)
+            starting_player_id = game.turn_player_id
+            emit(
+                "starting_player",
+                {"player_id": starting_player_id, "piece": game.piece},
+                room=game_id,
+            )
+
 
 caro_server = CaroServer()
 
@@ -263,6 +288,11 @@ def on_move(data: Dict[str, int]) -> None:
 @socketio.on("undo_move")
 def on_undo_move(data: Dict[str, str]) -> None:
     caro_server.on_undo_move(data)
+
+
+@socketio.on("reset_game")
+def on_reset_game(data: Dict[str, str]) -> None:
+    caro_server.on_reset_game(data)
 
 
 if __name__ == "__main__":

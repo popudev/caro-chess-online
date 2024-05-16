@@ -192,6 +192,7 @@ class GameOnline(Game):
         self.sio.on("undo_move", self.handle_undo_move_event)
         self.sio.on("opponent_left", self.handle_opponent_left_event)
         self.sio.on("game_over", self.handle_game_over_event)
+        self.sio.on("reset_game", self.handle_reset_game_event)
 
     def handle_connect_event(self):
         print("Connected to server")
@@ -207,12 +208,13 @@ class GameOnline(Game):
 
     def handle_starting_player_event(self, data):
         turn_player_id = data["player_id"]
-        piece = data["piece"]
-        self.turn_player = piece
+
         if self.player_current_id == turn_player_id:
             self.isMove = True
+            self.turn_player_name = "You"
         else:
             self.isMove = False
+            self.turn_player_name = "Opponent"
 
     def handle_move_event(self, data):
         row = data["row"]
@@ -230,11 +232,27 @@ class GameOnline(Game):
     def handle_game_over_event(self, data):
         self.winning_line = data["winner"]["winning_line"]
         self.winner = data["winner"]["piece"]
+        player_id_winner = data["player_id"]
+
+        if self.player_current_id == player_id_winner:
+            self.winner_name = "You win!"
+        else:
+            self.winner_name = "You lose!"
+
+        self.isMove = False
+
         print("Người chơi thắng: ", self.winner)
 
-    def handle_opponent_left_event(self):
+    def handle_opponent_left_event(self, data):
         self.isOpponentLeft = True
         self.sio.disconnect()
+
+    def handle_reset_game_event(self, data):
+        self.board = np.zeros(
+            (self.NUMBER_CELL_GAME_HEIGHT, self.NUMBER_CELL_GAME_WIDTH)
+        )
+        self.winner = 0
+        self.winning_line = None
 
     def handle_event_more(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -242,6 +260,9 @@ class GameOnline(Game):
                 event.pos
             ):
                 self.running = False
+
+    def reset(self):
+        self.sio.emit("reset_game", {"game_id": self.game_id})
 
     def run_before(self):
         self.draw_connecting_server()
