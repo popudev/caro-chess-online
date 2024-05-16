@@ -180,7 +180,6 @@ class GameOnline(Game):
             return
         col, row = hover_pos
 
-        self.play_sounds(self.move_sound)
         # Chỉ được đánh vào những ô trống và đến lượt của mình
         if self.board[row][col] == 0 and self.isMove == True:
             self.sio.emit("move", {"game_id": self.game_id, "row": row, "col": col})
@@ -223,6 +222,7 @@ class GameOnline(Game):
         col = data["col"]
         piece = data["piece"]
         if self.board[row][col] == 0:
+            self.play_sounds(self.move_sound)
             self.board[row][col] = piece
 
     def handle_undo_move_event(self, data):
@@ -241,7 +241,7 @@ class GameOnline(Game):
             self.play_sounds(self.victory_sound)
             self.winner_name = "You win!"
         else:
-            self.play_sounds(self.lose_sound)
+            self.play_sounds(self.gameover_sound)
             self.winner_name = "You lose!"
 
         self.isMove = False
@@ -272,9 +272,9 @@ class GameOnline(Game):
     def run_before(self):
         self.draw_connecting_server()
 
-        self.sio.connect("http://127.0.0.1:6000")
         if self.sio.connected == False and self.isError == False:
             try:
+                self.sio.connect("http://localhost:5000")
                 self.sio.emit("join", {})
             except:
                 self.isError = True

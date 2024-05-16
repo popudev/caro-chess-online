@@ -47,12 +47,12 @@ class Menu:
             "Exit",
         ]
         self.menu_rects = []  # To store button rectangles
-        
-        self.button_sound = pygame.mixer.Sound('res/mp3/click.mp3')
-        pygame.mixer.music.load('res/mp3/fight.mp3')
+
+        self.button_sound = pygame.mixer.Sound("res/mp3/click.mp3")
+        pygame.mixer.music.load("res/mp3/fight.mp3")
         pygame.mixer.music.play(loops=-1)
-        
-    def play_sounds(self, sound): 
+
+    def play_sounds(self, sound):
         sound.play()
 
     def draw_text(self, text, color, x, y):
@@ -81,8 +81,8 @@ class Menu:
 
     def run(self):
         clock = pygame.time.Clock()
-
-        while True:
+        running = True
+        while running:
             clock.tick(60)
             self.screen.blit(self.background_image, (0, 0))
 
@@ -108,8 +108,8 @@ class Menu:
                             pygame.mixer.music.stop()
                             self.play_sounds(self.button_sound)
                             if i == 0:
-
                                 self.start_game_online()
+
                             elif i == 1:
 
                                 self.start_game_offine()
@@ -118,8 +118,7 @@ class Menu:
                                 self.start_game_bot()
 
                             elif i == 3:
-                                pygame.quit()
-                                sys.exit()
+                                running = False
 
             pygame.display.update()
 

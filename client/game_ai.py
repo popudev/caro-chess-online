@@ -17,6 +17,7 @@ class GameAI(GameOffline):
 
         col, row = hover_pos
         if self.board[row][col] == 0:  # Only update if the cell is empty
+            self.play_sounds(self.move_sound)
             self.board[row][col] = self.turn_player
             self.winner = self.check_winner(col, row)
             if self.winner == 0:
@@ -34,8 +35,8 @@ class GameAI(GameOffline):
         # if self.try_to_win():
         #     return
         # Kiểm tra nếu cần chặn đối thủ thắng
-        if self.block_opponent():
-            return
+        # if self.block_opponent():
+        #     return
         # Nếu không thì đánh ngẫu nhiên
         self.random_move()
 
