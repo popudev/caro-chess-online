@@ -7,7 +7,7 @@ from config import Config
 from typing import List, Dict, Optional
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "secret!"
+# app.config["SECRET_KEY"] = "secret!"
 socketio = SocketIO(app)
 
 
@@ -259,6 +259,9 @@ def on_join(data: Dict[str, str]) -> None:
 def on_move(data: Dict[str, int]) -> None:
     caro_server.on_move(data)
 
+@app.route("/")
+def status():
+    return "Server is running", 200
 
 @socketio.on("undo_move")
 def on_undo_move(data: Dict[str, str]) -> None:
@@ -266,4 +269,4 @@ def on_undo_move(data: Dict[str, str]) -> None:
 
 
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=5000)
+    socketio.run(app, host="0.0.0.0", port=6000)

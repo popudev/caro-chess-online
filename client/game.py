@@ -5,7 +5,6 @@ import numpy as np
 from color import Color
 import sys
 
-
 class Game:
     def __init__(self, screen):
         self.screen = screen
@@ -47,6 +46,8 @@ class Game:
         self.winner = 0
         self.running = True
         self.isStart = False
+        self.turn_player_name = ""
+        self.winner_name = ""
 
         # Tải ảnh và thay đổi kích thước với padding
         # Padding để hình ảnh không đè lên viền ô
@@ -66,8 +67,6 @@ class Game:
         # Các nút thông báo
         self.noti_options = ["Winner", "Play again", "Exit"]
         self.noti_rects = []  # Lưu trữ nút để xử lý sự kiện click
-
-        self.turn_player = 1
 
     def draw_screen(self):
         self.screen.fill(Color.WHITE)
@@ -99,7 +98,7 @@ class Game:
             yButton = self.NAV_HEIGHT // 2 - nav_option_height // 2
             if option == "Player turn":
                 text_surf, text_rect = self.draw_text(
-                    f"Player { self.turn_player }'s turn",
+                    f"{ self.turn_player_name }'s turn",
                     Color.BLACK,
                     xButton + nav_option_width // 2,
                     yButton + nav_option_height // 2,
@@ -215,7 +214,7 @@ class Game:
             )
             if option == "Winner":
                 text_surf, text_rect = self.draw_text(
-                    f"{option}: Player {self.turn_player}",
+                    f"{option}: {self.winner_name}",
                     Color.BLACK,
                     xButton + noti_option_width // 2,
                     yButton + noti_option_height // 2,
@@ -274,9 +273,10 @@ class Game:
 
     def check_hover_cell(self):
         # Các lớp kế thừa có thể xử lý sự kiện hover riêng
-        if self.winner != 0:
-            return False
-        return True
+        if self.winner == 0 and self.isStart:
+            return True
+
+        return False
 
     def get_hover_cell(self):
         if not self.check_hover_cell():

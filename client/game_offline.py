@@ -7,6 +7,7 @@ class GameOffline(Game):
         super().__init__(screen)
 
         self.turn_player = 1  # X starts first
+        self.turn_player_name = "Player 1"
 
     def handle_move(self) -> None:
         hover_pos = self.get_hover_cell()
@@ -16,8 +17,9 @@ class GameOffline(Game):
         col, row = hover_pos
         if self.board[row][col] == 0:  # Only update if the cell is empty
             self.board[row][col] = self.turn_player
-            self.turn_player = 1 if self.turn_player == 2 else 2  # Switch player
             self.winner = self.check_winner(col, row)
+            self.turn_player = 1 if self.turn_player == 2 else 2  # Switch player
+            self.turn_player_name = f"Player { self.turn_player }"
 
     def check_winner(self, col: int, row: int) -> int:
         directions = [
@@ -64,6 +66,7 @@ class GameOffline(Game):
 
             if count >= 5:  # If there are 5 or more in a row
                 self.winning_line = (start_pos, end_pos)
+                self.winner_name = f"Player { int(piece) }"
                 return piece
 
         return 0  # Return 0 if there is no winner

@@ -246,9 +246,9 @@ class GameOnline(Game):
     def run_before(self):
         self.draw_connecting_server()
 
+        self.sio.connect("http://127.0.0.1:6000")
         if self.sio.connected == False and self.isError == False:
             try:
-                self.sio.connect("http://localhost:5000")
                 self.sio.emit("join", {})
             except:
                 self.isError = True
