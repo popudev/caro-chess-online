@@ -6,57 +6,15 @@ import socketio
 from asset import Asset
 from config import Config
 from utils import Utils
+from game import Game
 
 
-class Game:
+class GameOnline(Game):
     def __init__(self, screen):
-        self.screen = screen
+        super().__init__(screen)
 
-        self.CELL_SIZE = Config.CELL_SIZE
-        # Lấy độ cao là 2 ô cho nav bar
-        self.NUMBER_CELL_NAV_HEIGHT = 2
-
-        # Màn hình bàn cờ
-        self.NUMBER_CELL_GAME_WIDTH = Config.NUMBER_CELL_WIDTH
-        self.NUMBER_CELL_GAME_HEIGHT = (
-            Config.NUMBER_CELL_HEIGHT - self.NUMBER_CELL_NAV_HEIGHT
-        )
-
-        # Screen dimensions
-        self.SCREEN_WIDTH = self.CELL_SIZE * self.NUMBER_CELL_GAME_WIDTH
-        self.SCREEN_HEIGHT = self.CELL_SIZE * (
-            self.NUMBER_CELL_GAME_HEIGHT + self.NUMBER_CELL_NAV_HEIGHT
-        )
-
-        self.NAV_HEIGHT = self.CELL_SIZE * self.NUMBER_CELL_NAV_HEIGHT
-        self.NAV_WIDTH = self.SCREEN_WIDTH
-
-        self.GAME_HEIGHT = self.CELL_SIZE * self.NUMBER_CELL_GAME_HEIGHT
-        self.GAME_WIDTH = self.SCREEN_WIDTH
-
-        # Tạo bề mặt cho nav bar
-        self.nav_surface = pygame.Surface((self.NAV_WIDTH, self.NAV_HEIGHT))
-
-        # Tạo bề mặt cho bàn cờ
-        self.game_surface = pygame.Surface((self.GAME_WIDTH, self.GAME_HEIGHT))
-
-        # Khởi tạo dữ liệu bàn cờ là mảng 2 chiều
-        self.board = np.zeros(
-            (self.NUMBER_CELL_GAME_HEIGHT, self.NUMBER_CELL_GAME_WIDTH)
-        )
-        self.current_player = 1  # X starts first
-        self.winner = 0
-        self.running = True
-
-        # Tải ảnh và thay đổi kích thước với padding
-        # Padding để hình ảnh không đè lên viền ô
-        self.padding = 2
-        piece_size = (
-            self.CELL_SIZE - 2 * self.padding,
-            self.CELL_SIZE - 2 * self.padding,
-        )
-        self.x_img = pygame.transform.scale(Asset.X_IMG, piece_size)
-        self.o_img = pygame.transform.scale(Asset.O_IMG, piece_size)
+        # Khởi tạo lại nút mới vào màn hình game
+        self.nav_options_start_game = ["Exit"]
 
         # Khởi tạo một số nút tùy theo màn hình sẽ hiển thị trong game
         self.btn_go_back_error = None
@@ -93,81 +51,6 @@ class Game:
         if self.winner != 0:
             self.draw_winning_line()
             self.draw_end_game()
-
-    def draw_nav(self):
-        self.nav_surface.fill(Color.WHITE)
-
-        self.screen.blit(self.nav_surface, (0, 0))
-
-    def draw_game(self):
-        background_color = Color.WHITE
-        border_color = Color.BLACK
-
-        self.game_surface.fill(background_color)
-        self.draw_board(border_color)
-        self.screen.blit(self.game_surface, (0, self.NAV_HEIGHT))
-
-    def draw_board(self, border_color):
-        hover_pos = self.get_hover_cell()
-
-        for row in range(self.NUMBER_CELL_GAME_HEIGHT):
-            for col in range(self.NUMBER_CELL_GAME_WIDTH):
-
-                rect = pygame.Rect(
-                    col * self.CELL_SIZE,
-                    row * self.CELL_SIZE,
-                    self.CELL_SIZE,
-                    self.CELL_SIZE,
-                )
-
-                # Ô đó được hover khi game bắt đầu, chưa được đánh và chưa có ai thắng
-                if (
-                    (col, row) == hover_pos
-                    and self.board[row][col] == 0
-                    and self.winner == 0
-                    and self.isStart == True
-                    and self.isMove == True
-                ):
-                    # Tô màu cho ô
-                    pygame.draw.rect(self.game_surface, Color.HOVER_COLOR, rect)
-
-                # Vẽ viền cho ô
-                pygame.draw.rect(self.game_surface, border_color, rect, 1)
-
-                if self.board[row][col] == 1:
-                    self.draw_x(col, row)
-                elif self.board[row][col] == 2:
-                    self.draw_o(col, row)
-
-    def draw_x(self, col, row):
-        x_pos = col * self.CELL_SIZE + self.padding
-        y_pos = row * self.CELL_SIZE + self.padding
-        self.game_surface.blit(self.x_img, (x_pos, y_pos))
-
-    def draw_o(self, col, row):
-        x_pos = col * self.CELL_SIZE + self.padding
-        y_pos = row * self.CELL_SIZE + self.padding
-        self.game_surface.blit(self.o_img, (x_pos, y_pos))
-
-    def draw_winning_line(self):
-        if not hasattr(self, "winning_line"):
-            return
-
-        start_pos, end_pos = self.winning_line
-        start_pixel = (
-            start_pos[0] * self.CELL_SIZE + self.CELL_SIZE // 2,
-            start_pos[1] * self.CELL_SIZE + self.CELL_SIZE // 2 + self.NAV_HEIGHT,
-        )
-        end_pixel = (
-            end_pos[0] * self.CELL_SIZE + self.CELL_SIZE // 2,
-            end_pos[1] * self.CELL_SIZE + self.CELL_SIZE // 2 + self.NAV_HEIGHT,
-        )
-        color = Color.RED if self.winner == 1 else Color.BLUE
-        pygame.draw.line(self.screen, color, start_pixel, end_pixel, 5)
-
-    def draw_end_game(self):
-        # self.endgame_screen.draw(self.winner)
-        pass
 
     def draw_connecting_server(self, isError=False):
         font = pygame.font.Font(None, 36)
@@ -242,6 +125,22 @@ class Game:
         )
         self.screen.blit(text, textrect)
 
+    def check_hover_cell(self):
+        # Các lớp kế thừa có thể xử lý sự kiện hover riêng
+        if self.winner == 0 and self.isStart and self.isJoined and self.isMove:
+            return True
+
+        return False
+
+    def handle_move(self):
+        hover_pos = self.get_hover_cell()
+        if hover_pos == None:
+            return
+        col, row = hover_pos
+        # Chỉ được đánh vào những ô trống và đến lượt của mình
+        if self.board[row][col] == 0 and self.isMove == True:
+            self.sio.emit("move", {"game_id": self.game_id, "row": row, "col": col})
+
     def listen_socket_events(self):
         self.sio.on("connect", self.handle_connect_event)
         self.sio.on("joined", self.handle_joined_event)
@@ -265,6 +164,8 @@ class Game:
 
     def handle_starting_player_event(self, data):
         turn_player_id = data["player_id"]
+        piece = data["piece"]
+        self.turn_player = piece
         if self.player_current_id == turn_player_id:
             self.isMove = True
         else:
@@ -288,74 +189,25 @@ class Game:
         self.winner = data["winner"]["piece"]
         print("Người chơi thắng: ", self.winner)
 
-    def get_hover_cell(self):
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        col = mouse_x // self.CELL_SIZE
-        row = (mouse_y - self.NAV_HEIGHT) // self.CELL_SIZE
-        if (
-            0 <= col < self.NUMBER_CELL_GAME_WIDTH
-            and 0 <= row < self.NUMBER_CELL_GAME_HEIGHT
-        ):
-            return col, row
-        return None
+    def handle_event_more(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if self.btn_go_back_error != None and self.btn_go_back_error.collidepoint(
+                event.pos
+            ):
+                self.running = False
 
-    def handle_move(self):
-        if self.winner != 0:
-            return
-        hover_pos = self.get_hover_cell()
-        if hover_pos == None:
-            return
-        col, row = hover_pos
-        # Chỉ được đánh vào những ô trống và đến lượt của mình
-        if self.board[row][col] == 0 and self.isMove == True:
-            self.sio.emit("move", {"game_id": self.game_id, "row": row, "col": col})
-
-    def handel_game_event(self, event):
-
-        if self.isStart == False:
-            return
-
-        if event.type == pygame.MOUSEBUTTONUP:
-            # Kiểm tra xem nút nào được nhấn
-            if event.button == 1:  # 1 là nút chuột trái
-                self.handle_move()
-
-    def run(self):
-        clock = pygame.time.Clock()
-        self.screen.fill(Color.WHITE)
-
+    def run_before(self):
         self.draw_connecting_server()
 
         if self.sio.connected == False and self.isError == False:
             try:
                 self.sio.connect("http://localhost:5000")
+                self.sio.emit("join", {})
             except:
                 self.isError = True
 
-        self.sio.emit("join", {})
-
-        while self.running:
-            clock.tick(60)
-            self.draw_screen()
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
-                    pygame.quit()
-                    sys.exit()
-
-                self.handel_game_event(event)
-
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if (
-                        self.btn_go_back_error != None
-                        and self.btn_go_back_error.collidepoint(event.pos)
-                    ):
-                        self.running = False
-
-            pygame.display.update()
-
-
-if __name__ == "__main__":
-    game = Game()
-    game.run()
+    def run_after(self):
+        try:
+            self.sio.disconnect()
+        except:
+            self.isError = True

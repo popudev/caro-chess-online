@@ -170,7 +170,11 @@ class CaroServer:
                 emit("start_game", {"game_id": game_id}, room=game_id)
                 starting_player_id = random.choice(game.player_ids)
                 game.set_turn_player_id(starting_player_id)
-                emit("starting_player", {"player_id": starting_player_id}, room=game_id)
+                emit(
+                    "starting_player",
+                    {"player_id": starting_player_id, "piece": game.piece},
+                    room=game_id,
+                )
 
     def on_move(self, data: Dict[str, int]) -> None:
         game_id = data["game_id"]
@@ -190,7 +194,9 @@ class CaroServer:
                 emit("game_over", {"winner": winner}, room=game_id)
             else:
                 emit(
-                    "starting_player", {"player_id": game.turn_player_id}, room=game_id
+                    "starting_player",
+                    {"player_id": game.turn_player_id, "piece": game.piece},
+                    room=game_id,
                 )
 
     def on_undo_move(self, data: Dict[str, str]) -> None:
@@ -203,7 +209,11 @@ class CaroServer:
             # Notify clients that the move was undone
             emit("undo_move", {"prev_move": prev_move}, room=game_id)
             # Notify the next player to make a move
-            emit("starting_player", {"player_id": game.turn_player_id}, room=game_id)
+            emit(
+                "starting_player",
+                {"player_id": game.turn_player_id, "piece": game.piece},
+                room=game_id,
+            )
 
     def remove_player_from_game(self, player_sid: str) -> None:
         for game_id, game in list(self.games.items()):

@@ -1,9 +1,9 @@
 import pygame
 import sys
-from game_online import Game
-import time
+from game_offline import GameOffline
 from asset import Asset
 from config import Config
+from game_online import GameOnline
 
 
 class Menu:
@@ -39,7 +39,7 @@ class Menu:
         self.font = pygame.font.SysFont("Arial", 36, bold=True)
 
         # Menu options
-        self.menu_options = ["Start Game", "Options", "Exit"]
+        self.menu_options = ["Start Online", "Start 2 Player", "Exit"]
         self.menu_rects = []  # To store button rectangles
 
     def draw_text(self, text, color, x, y):
@@ -94,33 +94,23 @@ class Menu:
                         if rect.collidepoint(event.pos):
                             if i == 0:
                                 print("Start Game clicked")
-                                self.start_game()
+                                self.start_game_online()
                             elif i == 1:
                                 print("Options clicked")
-                                self.show_options()
+                                self.start_game_offine()
                             elif i == 2:
                                 pygame.quit()
                                 sys.exit()
 
             pygame.display.update()
 
-    def start_game(self):
-        # Switch to loading screen
-        self.screen.fill(self.WHITE)
-
-        # Clear all events before switching screens
-        pygame.event.clear()
-
-        # Placeholder for starting the game
-        game = Game(screen=self.screen)
+    def start_game_online(self):
+        game = GameOnline(screen=self.screen)
         game.run()
 
-    def show_options(self):
-        # Placeholder for options menu
-        print("Showing options...")
-        # Here you would show your options screen or logic
-        # Example:
-        # self.run_options()
+    def start_game_offine(self):
+        game = GameOffline(screen=self.screen)
+        game.run()
 
 
 if __name__ == "__main__":
