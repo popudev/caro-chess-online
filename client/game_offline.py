@@ -14,11 +14,14 @@ class GameOffline(Game):
         if not hover_pos:
             return
 
+        self.play_sounds(self.move_sound)
+
         col, row = hover_pos
         if self.board[row][col] == 0:  # Only update if the cell is empty
             self.board[row][col] = self.turn_player
             self.winner = self.check_winner(col, row)
             if self.winner == 0:
+                self.play_sounds(self.victory_sound)
                 self.turn_player = 1 if self.turn_player == 2 else 2  # Switch player
                 self.turn_player_name = f"Player { self.turn_player }"
 
