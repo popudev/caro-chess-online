@@ -1,7 +1,9 @@
 import pygame
 import sys
-from game import Game
+from game_online import Game
 import time
+from asset import Asset
+from config import Config
 
 
 class Menu:
@@ -9,9 +11,9 @@ class Menu:
         # Initialize Pygame
         pygame.init()
 
-        self.CELL_SIZE = 30
-        self.NUMBER_CELL_WIDTH = 28
-        self.NUMBER_CELL_HEIGHT = 20
+        self.CELL_SIZE = Config.CELL_SIZE
+        self.NUMBER_CELL_WIDTH = Config.NUMBER_CELL_WIDTH
+        self.NUMBER_CELL_HEIGHT = Config.NUMBER_CELL_HEIGHT
 
         # Screen dimensions
         self.SCREEN_WIDTH = self.CELL_SIZE * self.NUMBER_CELL_WIDTH
@@ -21,13 +23,12 @@ class Menu:
         self.WHITE = (255, 255, 255)
         self.GRAY = (200, 200, 200)
         self.BLACK = (0, 0, 0)
-        self.BLUE = (0, 191, 255)  # Light Sea Blue
+        self.BLUE = (0, 191, 255)
         self.RED = (255, 0, 0)
 
         # Load background image and scale it to fit the screen
-        self.background_image = pygame.image.load("background.jpg")
         self.background_image = pygame.transform.scale(
-            self.background_image, (self.SCREEN_WIDTH, self.SCREEN_HEIGHT)
+            Asset.BACKGROUND_IMG, (self.SCREEN_WIDTH, self.SCREEN_HEIGHT)
         )
 
         # Create screen
@@ -66,8 +67,10 @@ class Menu:
         return button_rect
 
     def run(self):
+        clock = pygame.time.Clock()
 
         while True:
+            clock.tick(60)
             self.screen.blit(self.background_image, (0, 0))
 
             # Draw menu options and store their rects
@@ -104,24 +107,13 @@ class Menu:
     def start_game(self):
         # Switch to loading screen
         self.screen.fill(self.WHITE)
-        loading_text, loading_rect = self.draw_text(
-            "Loading...", self.BLACK, self.SCREEN_WIDTH // 2, self.SCREEN_HEIGHT // 2
-        )
-        self.screen.blit(loading_text, loading_rect)
-        pygame.display.update()
 
-        # Simulate loading time
-        time.sleep(2)
+        # Clear all events before switching screens
+        pygame.event.clear()
+
         # Placeholder for starting the game
-        game = Game(
-            cell_size=self.CELL_SIZE,
-            number_cell_width=self.NUMBER_CELL_WIDTH,
-            number_cell_height=self.NUMBER_CELL_HEIGHT,
-        )
+        game = Game(screen=self.screen)
         game.run()
-        # Here you would initialize your game or switch to the game screen
-        # Example:
-        # self.run_game()
 
     def show_options(self):
         # Placeholder for options menu

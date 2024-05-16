@@ -1,0 +1,4 @@
+class Config:
+    CELL_SIZE = 30
+    NUMBER_CELL_WIDTH = 15
+    NUMBER_CELL_HEIGHT = 18
